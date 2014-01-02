@@ -9,14 +9,17 @@ class Shelf {
   final List<ShelfHandler> _handlers = new List<ShelfHandler>();
 
   Future<ShelfResponse> handleRequest(HttpRequest request) {
-    return new Future.sync(() => _default(request));
+    return new Future.sync(() => _default(request, _doNext));
   }
 
-  Future listen(int port) {
-    return HttpServer.bind(InternetAddress.ANY_IP_V6, port)
-        .then((HttpServer server) => server.listen(_handleRequest))
-        .then((_) => null);
+  Future<ShelfResponse> _doNext(dynamic callback(ShelfResponse)) {
+    return new Future.sync(() => callback(null));
   }
+
+  Future listen(int port) =>
+    HttpServer.bind(InternetAddress.ANY_IP_V6, port)
+      .then((HttpServer server) => server.listen(_handleRequest))
+      .then((_) => null);
 
   void _handleRequest(HttpRequest request) {
     HttpResponse response = request.response;
@@ -48,9 +51,9 @@ class ShelfResponse {
     this.body = 'Could not find a resource for $uri';
 }
 
-typedef dynamic ShelfHandler(HttpRequest request, [dynamic next(ShelfResponse)]);
+typedef dynamic ShelfHandler(HttpRequest request, [dynamic next(Function)]);
 
-dynamic _default(HttpRequest request, [Function next]) {
+dynamic _default(HttpRequest request, [dynamic next(Function)]) {
   return next((ShelfResponse response) {
     if(response == null) {
       return new ShelfResponse.noop(request.uri);

@@ -1,5 +1,6 @@
 library harness_console;
 
+import 'dart:io';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/vm_config.dart';
 
@@ -15,7 +16,7 @@ void testCore(Configuration config) {
 
   test('default should be 404', () {
 
-    var request = null;
+    var request = new _RequestMock();
 
     return startShelf()
         .handleRequest(request)
@@ -24,4 +25,12 @@ void testCore(Configuration config) {
         });
   });
 
+}
+
+class _RequestMock implements HttpRequest {
+  final Uri uri;
+  final String method;
+
+  _RequestMock({Uri uri, this.method: 'GET'}) :
+    this.uri = (uri == null) ? new Uri(path:'/') : uri;
 }
